@@ -1,16 +1,18 @@
-import Diagram from "./components/Diagram";
 import ChatPanel from "./components/ChatPanel";
-import Topbar from "./components/Topbar";
+import Diagram from "./components/Diagram";
 
-export default function App() {
+function App() {
   return (
-    <div className="h-screen flex flex-col">
-      <Topbar />
-
-      <div className="flex flex-1">
+    <div className="h-screen flex">
+      <div className="w-1/2 border-r">
         <Diagram />
+      </div>
+
+      <div className="w-1/2">
         <ChatPanel />
       </div>
     </div>
   );
 }
+
+export default App;

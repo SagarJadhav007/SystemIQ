@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
+import speechService from "../services/speechService";
 
 type Message = {
   role: "user" | "ai";
@@ -8,16 +9,36 @@ type Message = {
 
 export default function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [listening, setListening] = useState(false);
 
   useEffect(() => {
-    socket.on("ai_question", (msg: string) => {
-      console.log("AI:", msg);
+    // 🎤 INIT SPEECH
+    speechService.init(
+      ({ final }: any) => {
+        if (final && final.trim().length > 3) {
+          console.log("User:", final);
 
+          setMessages((prev) => [
+            ...prev,
+            { role: "user", text: final },
+          ]);
+
+          socket.emit("user_message", final);
+        }
+      },
+      () => {
+        console.log("User interrupted AI");
+      }
+    );
+
+    // 🤖 AI RESPONSE
+    socket.on("ai_question", (msg: string) => {
       setMessages((prev) => [
         ...prev,
         { role: "ai", text: msg },
       ]);
+
+      speechService.speak(msg); // 🔥 SPEAK
     });
 
     return () => {
@@ -25,57 +46,43 @@ export default function ChatPanel() {
     };
   }, []);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-
-    // ✅ Add user message to UI
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: input },
-    ]);
-
-    // ✅ Send to backend
-    socket.emit("user_message", input);
-
-    setInput("");
+  const toggleMic = () => {
+    if (listening) {
+      speechService.stop();
+    } else {
+      speechService.start();
+    }
+    setListening(!listening);
   };
 
   return (
     <div className="flex flex-col h-full">
-      
-      {/* CHAT MESSAGES */}
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto text-sm">
-        {messages.map((msg, i) => (
+
+      {/* CHAT */}
+      <div className="flex-1 p-3 overflow-y-auto space-y-2">
+        {messages.map((m, i) => (
           <div
             key={i}
-            className={`p-2 rounded shadow max-w-[80%] ${
-              msg.role === "user"
+            className={`p-2 rounded max-w-[70%] ${
+              m.role === "user"
                 ? "bg-blue-500 text-white ml-auto"
                 : "bg-white"
             }`}
           >
-            {msg.text}
+            {m.text}
           </div>
         ))}
       </div>
 
-      {/* INPUT BOX */}
-      <div className="p-3 border-t flex gap-2">
-        <input
-          className="flex-1 border p-2 rounded"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Explain your design..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter") sendMessage();
-          }}
-        />
-
+      {/* MIC CONTROL */}
+      <div className="p-3 border-t flex justify-between">
         <button
-          onClick={sendMessage}
-          className="bg-blue-500 text-white px-4 rounded"
+          onClick={toggleMic}
+          className={`px-4 py-2 rounded ${
+            listening ? "bg-red-500" : "bg-green-500"
+          } text-white`}
         >
-          Send
+          {listening ? "Stop Mic" : "Start Mic"}
         </button>
       </div>
     </div>

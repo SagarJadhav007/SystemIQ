@@ -1,81 +1,214 @@
 import { llm } from "../services/llm.js";
+import {
+  extractTopicsFromText,
+  extractTopicsFromGraph,
+} from "../services/topicEngine.js";
 
 export async function interviewNode(state) {
-  const { problem, stage = "start", messages = [] } = state;
+  const now = Date.now();
 
-  // 🔥 First message (start interview)
-  if (!state.started) {
+  const {
+    problem,
+    stage,
+    started,
+    lastUserText,
+    lastUserActivity,
+    lastAIActivity,
+    graph,
+  } = state;
+
+  const textTopics = extractTopicsFromText(lastUserText, problem);
+  const graphTopics = extractTopicsFromGraph(graph, problem);
+
+  // mismatch detection
+  const missingInGraph = textTopics.filter((t) => !graphTopics.includes(t));
+  const unexplainedInGraph = graphTopics.filter((t) => !textTopics.includes(t));
+
+  // -------------------------
+  // 1. GREETING
+  // -------------------------
+  if (!started) {
     return {
       started: true,
-      stage: "greeting",
+      stage: "wait_ready",
+      readyAskedCount: 0,
+      lastAIActivity: now,
       messages: [
         {
           role: "assistant",
-          content: `Hi, let's start the system design interview.
+          content: `Hi, let's begin your system design interview.
 
 Problem: ${problem.title}
 
 ${problem.description}
 
-Are you ready to begin?`
-        }
-      ]
+Are you ready to start?`,
+        },
+      ],
     };
   }
 
-  const conversation = messages
-    .map((m) => `${m.role}: ${m.content}`)
-    .join("\n");
+  // -------------------------
+  // 2. WAIT READY
+  // -------------------------
+  if (stage === "wait_ready") {
+    const text = lastUserText?.toLowerCase() || "";
 
+    if (text.includes("yes") || text.includes("ready")) {
+      return {
+        stage: "requirements",
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content:
+              "Great. What requirements or assumptions would you clarify?",
+          },
+        ],
+      };
+    }
+
+    if (now - (lastAIActivity || 0) > 3000) {
+      return {
+        stage: "requirements",
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content: "Let's proceed. Start with requirements or assumptions.",
+          },
+        ],
+      };
+    }
+
+    return {};
+  }
+
+  // -------------------------
+  // 3. REQUIREMENTS
+  // -------------------------
+  if (stage === "requirements") {
+    if (lastUserText) {
+      return {
+        stage: "hld",
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content:
+              "Good. Now design the high-level architecture. You can also draw it.",
+          },
+        ],
+      };
+    }
+  }
+
+  // -------------------------
+  // 4. HLD (MONITOR MODE)
+  // -------------------------
+  if (stage === "hld") {
+    if (now - (lastUserActivity || 0) < 2000) return {};
+
+    // 🔥 user talking but not drawing
+    if (missingInGraph.length >= 2) {
+      return {
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content:
+              "You're mentioning components not present in your diagram. Can you add them?",
+          },
+        ],
+      };
+    }
+
+    // 🔥 user drawing but not explaining
+    if (unexplainedInGraph.length >= 2) {
+      return {
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content: "Can you walk me through the components you've added?",
+          },
+        ],
+      };
+    }
+
+    if (lastUserText && lastUserText.length < 20) {
+      return await askLLM(state, "clarify");
+    }
+
+    if (lastUserText && lastUserText.length > 50) {
+      return {
+        stage: "lld",
+        lastAIActivity: now,
+        messages: [
+          {
+            role: "assistant",
+            content:
+              "Good. Let's dive deeper into storage, ordering, and scaling.",
+          },
+        ],
+      };
+    }
+
+    return {};
+  }
+
+  // -------------------------
+  // 5. LLD
+  // -------------------------
+  if (stage === "lld") {
+    if (now - (lastUserActivity || 0) < 2000) return {};
+
+    return await askLLM(state, "deep_dive");
+  }
+
+  // -------------------------
+  // 6. WRAP
+  // -------------------------
+  if (stage === "wrap_up") {
+    return {
+      messages: [
+        {
+          role: "assistant",
+          content:
+            "Great discussion. Thank you. Your results will be generated shortly.",
+        },
+      ],
+    };
+  }
+
+  return {};
+}
+
+// -------------------------
+// LLM HELPER
+// -------------------------
+async function askLLM(state, reason) {
   const res = await llm.invoke([
     {
       role: "system",
       content: `
 You are a FAANG system design interviewer.
 
-Problem:
-${problem.title}
+Problem: ${state.problem.title}
 
-Core Components:
-${problem.core.join(", ")}
+Reason: ${reason}
 
-Deep Dive Topics:
-${problem.deep_dive.join(", ")}
-
-Current Stage: ${stage}
-
-Interview Flow Rules:
-- Start with high-level design
-- Then go deeper
-- Then scaling
-- Then wrap up
-- Ask ONE question at a time
-- NEVER give full answers
-- Be sharp and concise
-
-Stage Logic:
-- greeting → ask first high-level question
-- high_level → ask architecture questions
-- deep_dive → ask DB, scaling
-- wrap_up → conclude
-
-DO NOT ask generic questions.
-DO NOT restart interview.
-      `
+Rules:
+- Ask ONE sharp question
+- Do NOT explain answers
+- Keep it short
+- Focus on depth
+`,
     },
-    ...messages
+    ...state.messages,
   ]);
 
   return {
     messages: [res],
-    stage: nextStage(stage, messages),
   };
-}
-
-// simple stage progression
-function nextStage(stage, messages) {
-  if (messages.length < 3) return "high_level";
-  if (messages.length < 8) return "deep_dive";
-  if (messages.length < 12) return "optimization";
-  return "wrap_up";
 }

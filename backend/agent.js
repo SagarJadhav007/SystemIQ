@@ -9,5 +9,7 @@ export function buildAgent(checkpointer) {
 
   builder.addEdge(START, "interview");
 
-  return builder.compile({ checkpointer });
+  return builder.compile({
+    checkpointer,
+  });
 }
