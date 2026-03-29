@@ -1,3 +1,4 @@
+// frontend/src/components/ChatPanel.tsx
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
 import speechService from "../services/speechService";
@@ -10,9 +11,11 @@ type Message = {
 export default function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [listening, setListening] = useState(false);
-  const [isAIListening, setIsAIListening] = useState(false); // buffering voice
-  const [isAIThinking, setIsAIThinking] = useState(false);   // waiting for LLM
+  const [isAIListening, setIsAIListening] = useState(false);
+  const [isAIThinking, setIsAIThinking] = useState(false);
   const [interimText, setInterimText] = useState("");
+  const [modelStatus, setModelStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [modelMessage, setModelMessage] = useState("Loading speech model...");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,27 +26,34 @@ export default function ChatPanel() {
 
         if (final && final.trim().length > 2) {
           setInterimText("");
-          // Show user message immediately in UI
           setMessages((prev) => [...prev, { role: "user", text: final }]);
-          // Send to backend — backend buffers, not frontend
           socket.emit("user_message", final);
         }
       },
       () => {
-        // AI was speaking, user interrupted
         speechService.stopSpeaking();
+      },
+      // New: status callback for model loading
+      (status: string) => {
+        if (status === "ready") {
+          setModelStatus("ready");
+          setModelMessage("Speech model ready");
+        } else if (status === "mic_denied") {
+          setModelStatus("error");
+          setModelMessage("Microphone access denied");
+        } else {
+          setModelStatus("loading");
+          setModelMessage(status);
+        }
       }
     );
 
     // ── SOCKET EVENTS ────────────────────────────────────────────────────
-
-    // Backend is still accumulating voice fragments
     socket.on("ai_listening", (buffering: boolean) => {
       setIsAIListening(buffering);
       if (buffering) setIsAIThinking(false);
     });
 
-    // AI response arrived
     socket.on("ai_question", (msg: string) => {
       setIsAIThinking(false);
       setIsAIListening(false);
@@ -51,7 +61,6 @@ export default function ChatPanel() {
       speechService.speak(msg);
     });
 
-    // Error fallback
     socket.on("ai_error", (msg: string) => {
       setIsAIThinking(false);
       setIsAIListening(false);
@@ -65,18 +74,21 @@ export default function ChatPanel() {
     };
   }, []);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isAIListening, isAIThinking]);
 
-  const toggleMic = () => {
+  const toggleMic = async () => {
     if (listening) {
       speechService.stop();
       setListening(false);
       setInterimText("");
     } else {
-      speechService.start();
+      // Warn user if model still loading — they can still try, it'll queue
+      if (modelStatus !== "ready") {
+        console.warn("[ChatPanel] Starting mic before model ready — will transcribe once loaded");
+      }
+      await speechService.start();
       setListening(true);
     }
   };
@@ -89,6 +101,26 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-col h-full bg-gray-950 text-white">
+
+      {/* ── MODEL STATUS BANNER ── */}
+      {modelStatus !== "ready" && (
+        <div
+          className={`px-4 py-2 text-xs flex items-center gap-2 ${
+            modelStatus === "error"
+              ? "bg-red-950 text-red-300 border-b border-red-800"
+              : "bg-gray-900 text-gray-400 border-b border-gray-800"
+          }`}
+        >
+          {modelStatus === "loading" && (
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse shrink-0" />
+          )}
+          {modelStatus === "error" && <span>⚠️</span>}
+          <span>{modelMessage}</span>
+          {modelStatus === "loading" && (
+            <span className="text-gray-600 ml-auto">first run downloads ~40MB, then cached</span>
+          )}
+        </div>
+      )}
 
       {/* ── MESSAGES ── */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -114,7 +146,6 @@ export default function ChatPanel() {
           </div>
         ))}
 
-        {/* Interim voice text */}
         {interimText && (
           <div className="flex justify-end">
             <div className="px-3 py-2 rounded-2xl text-sm max-w-[78%] bg-indigo-900/50 text-indigo-300 italic border border-indigo-800">
@@ -123,7 +154,6 @@ export default function ChatPanel() {
           </div>
         )}
 
-        {/* Status indicators */}
         {isAIListening && !isAIThinking && (
           <div className="flex justify-start items-center gap-2 pl-9">
             <div className="flex gap-1 items-center text-xs text-yellow-400">
@@ -149,20 +179,25 @@ export default function ChatPanel() {
       {/* ── CONTROLS ── */}
       <div className="p-3 border-t border-gray-800 flex items-center gap-2">
 
-        {/* Mic toggle */}
         <button
           onClick={toggleMic}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+          disabled={modelStatus === "error"}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
             listening
               ? "bg-red-600 hover:bg-red-700 text-white"
+              : modelStatus === "loading"
+              ? "bg-gray-700 text-gray-400 cursor-wait"
               : "bg-gray-800 hover:bg-gray-700 text-gray-200"
           }`}
         >
           <span>{listening ? "🔴" : "🎤"}</span>
-          {listening ? "Stop" : "Start Mic"}
+          {listening
+            ? "Stop"
+            : modelStatus === "loading"
+            ? "Loading..."
+            : "Start Mic"}
         </button>
 
-        {/* Done explaining — force flush buffer */}
         {isAIListening && (
           <button
             onClick={flushInput}
@@ -172,7 +207,6 @@ export default function ChatPanel() {
           </button>
         )}
 
-        {/* Status pill */}
         <div className="ml-auto text-xs text-gray-500">
           {listening ? (
             <span className="flex items-center gap-1.5 text-green-400">

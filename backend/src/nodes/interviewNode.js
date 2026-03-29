@@ -32,6 +32,8 @@ export async function interviewNode(state) {
   }
 
   // ── GUARD — no user text means nothing to respond to ────────────────────
+  // This guard also catches the case where runGraphCheck injects an AI message
+  // directly — we don't want to double-respond.
   if (!lastUserText?.trim()) {
     console.log("[interviewNode] → no user text, skipping LLM");
     return {};
@@ -58,8 +60,6 @@ export async function interviewNode(state) {
   // ── 5. OPEN FLOW — LLM decides what to ask ──────────────────────────────
   const systemPrompt = buildSystemPrompt(problem, updatedTopics, parsedGraph, mentionedButNotDrawn, drawnButNotExplained);
 
-  // Build conversation: full history + current user turn as final message
-  // This ensures the LLM always has the latest candidate input to respond to
   const historyMessages = messages.map((m) => ({
     role: m._getType?.() === "ai" ? "assistant" : "user",
     content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
@@ -73,15 +73,30 @@ export async function interviewNode(state) {
 
   console.log("[interviewNode] → calling LLM | msgs:", historyMessages.length, "| lastUserText:", lastUserText?.slice(0, 60));
 
-  const response = await llm.invoke([
-    { role: "system", content: systemPrompt },
-    ...historyMessages,
-  ]);
+  let responseContent = "";
+  try {
+    const response = await llm.invoke([
+      { role: "system", content: systemPrompt },
+      ...historyMessages,
+    ]);
+
+    responseContent = response.content?.trim();
+  } catch (err) {
+    console.error("[interviewNode] LLM call failed:", err.message);
+    // Return empty so controller can handle gracefully
+    return {};
+  }
+
+  // ── VALIDATE — don't store empty AI turns in history ────────────────────
+  if (!responseContent) {
+    console.warn("[interviewNode] LLM returned empty content — skipping message");
+    return { topicsCovered: updatedTopics, lastAIActivity: now };
+  }
 
   return {
     topicsCovered: updatedTopics,
     lastAIActivity: now,
-    messages: [new AIMessage(response.content)],
+    messages: [new AIMessage(responseContent)],
   };
 }
 
@@ -126,7 +141,7 @@ CONTEXT:
 Problem: ${problem.title} — ${problem.description}
 Diagram so far: ${graphSummary}
 Topics candidate has touched: ${coveredList}
-${syncIssues ? `Sync issues to probe: ${syncIssues}` : ""}
+${syncIssues ? `Sync issues to probe:\n${syncIssues}` : ""}
 
 EXAMPLES OF CORRECT INTERVIEWER RESPONSES:
 - Candidate: "I'd use a load balancer" → You: "What are you distributing load across, and why not DNS-based routing?"
@@ -136,10 +151,10 @@ EXAMPLES OF CORRECT INTERVIEWER RESPONSES:
 - Candidate: "I'll handle scale with caching" → You: "What specifically are you caching, and what's your eviction policy?"
 
 EXAMPLES OF WRONG RESPONSES (NEVER DO THIS):
-- "I've drawn a high-level diagram with the following components: ..." ← WRONG, that's the candidate's job
-- "Let's move on to the database layer" ← WRONG, never direct the flow
-- "You should use Cassandra because..." ← WRONG, never give answers
-- "Great approach! Now let's discuss..." ← WRONG, do not compliment and redirect
+- "I've drawn a high-level diagram with the following components: ..." ← WRONG
+- "Let's move on to the database layer" ← WRONG
+- "You should use Cassandra because..." ← WRONG
+- "Great approach! Now let's discuss..." ← WRONG
 
 Now respond to the candidate's last message. One question only.`;
 }
@@ -162,10 +177,12 @@ async function runWrapup(state, messages, graph, problem, topicsCovered, now) {
     .map(([k, v]) => `${k}: ${v ? "✅ covered" : "❌ missed"}`)
     .join("\n");
 
-  const response = await llm.invoke([
-    {
-      role: "system",
-      content: `You are a senior staff engineer at Google. The system design interview has ended.
+  let responseContent = "";
+  try {
+    const response = await llm.invoke([
+      {
+        role: "system",
+        content: `You are a senior staff engineer at Google. The system design interview has ended.
 Generate a structured evaluation.
 
 Problem: ${problem.title}
@@ -188,12 +205,18 @@ Respond in this exact format:
 **2 Biggest Gaps**: Direct. If they never clarified requirements, say it.
 
 **One Thing to Work On**: Single most impactful advice for their next interview.`,
-    },
-    { role: "user", content: "Give me my evaluation." },
-  ]);
+      },
+      { role: "user", content: "Give me my evaluation." },
+    ]);
+
+    responseContent = response.content?.trim() || "Evaluation could not be generated. Please try again.";
+  } catch (err) {
+    console.error("[runWrapup] LLM error:", err);
+    responseContent = "There was an error generating your evaluation. Please try again.";
+  }
 
   return {
     lastAIActivity: now,
-    messages: [new AIMessage(`Thanks for walking me through your design. Here's your feedback:\n\n${response.content}`)],
+    messages: [new AIMessage(`Thanks for walking me through your design. Here's your feedback:\n\n${responseContent}`)],
   };
 }
