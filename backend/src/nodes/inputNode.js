@@ -1,30 +1,13 @@
-import { llm } from "../services/llm.js";
-
 export async function inputNode(state) {
-  const lastMessage = state.messages.at(-1)?.content;
 
-  if (!lastMessage) return {};
+    console.log("\n========== INPUT ==========");
 
-  const res = await llm.invoke(`
-Analyze input:
+    console.log("Candidate Message:");
 
-"${lastMessage}"
+    console.log(state.candidate.latestMessage);
 
-Return JSON:
-{
-  "intent": "...",
-  "components": [],
-  "missing": [],
-  "isQuestion": true/false
-}
-`);
+    console.log("================================\n");
 
-  let parsed = {};
-  try {
-    parsed = JSON.parse(res.content);
-  } catch {}
+    return {};
 
-  return {
-    inputAnalysis: parsed,
-  };
 }

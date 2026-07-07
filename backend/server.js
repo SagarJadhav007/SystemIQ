@@ -4,9 +4,11 @@ import cors from "cors";
 import { Server } from "socket.io";
 
 import { initSockets } from "./src/sockets/index.js";
+import voiceRoutes from "./src/routes/voice.routes.js";
 
 const app = express();
 app.use(cors());
+app.use("/api/voice", voiceRoutes);
 
 const server = http.createServer(app);
 

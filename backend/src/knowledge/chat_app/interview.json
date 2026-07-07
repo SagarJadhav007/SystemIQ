@@ -1,0 +1,20 @@
+{
+  "estimatedDuration": 45,
+
+  "stages": [
+    "Requirements",
+    "High Level Design",
+    "Realtime Communication",
+    "Database",
+    "Scaling",
+    "Tradeoffs",
+    "Wrap Up"
+  ],
+
+  "difficultyLevels": [
+    "Junior",
+    "SDE1",
+    "SDE2",
+    "Senior"
+  ]
+}

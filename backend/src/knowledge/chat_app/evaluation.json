@@ -1,0 +1,62 @@
+{
+  "topics": [
+    {
+      "name": "Requirement Gathering",
+      "weight": 10,
+      "concepts": [
+        "DAU",
+        "Groups",
+        "Media",
+        "Latency",
+        "Availability"
+      ]
+    },
+    {
+      "name": "High Level Design",
+      "weight": 10,
+      "concepts": [
+        "API Gateway",
+        "Load Balancer",
+        "Message Service"
+      ]
+    },
+    {
+      "name": "Realtime Communication",
+      "weight": 10,
+      "concepts": [
+        "WebSocket",
+        "Heartbeat",
+        "Reconnect",
+        "PubSub"
+      ]
+    },
+    {
+      "name": "Database",
+      "weight": 9,
+      "concepts": [
+        "Schema",
+        "Indexes",
+        "Pagination"
+      ]
+    },
+    {
+      "name": "Scaling",
+      "weight": 10,
+      "concepts": [
+        "Sharding",
+        "Replication",
+        "Caching",
+        "Kafka"
+      ]
+    },
+    {
+      "name": "Tradeoffs",
+      "weight": 8,
+      "concepts": [
+        "CAP",
+        "Consistency",
+        "Availability"
+      ]
+    }
+  ]
+}

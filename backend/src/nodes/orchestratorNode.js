@@ -1,51 +1,44 @@
-import { llm } from "../services/llm.js";
-
 export async function orchestratorNode(state) {
-  const conversation = state.messages
-    .map((m) => `${m.role}: ${m.content}`)
-    .join("\n");
 
-  const res = await llm.invoke(`
-You are a FAANG-level system design interviewer.
+    const action = state.candidate.intent?.nextAction;
 
-STRICT RULES:
-- You NEVER give full answers
-- You ONLY ask questions
-- You guide the candidate step-by-step
-- You interrupt if needed
-- You focus on weak areas
-- You ask ONE question at a time
-- Keep it SHORT (1-2 lines max)
+    console.log("\n========== ORCHESTRATOR ==========");
+    console.log("Intent :", state.candidate.intent?.intent);
+    console.log("Action :", action);
 
-If user asks a question:
-- Answer VERY briefly (1 line hint)
-- Then ask a follow-up question
+    let nextNode = "interviewer";
 
--------------------------
+    switch (action) {
 
-Conversation:
-${conversation}
+        case "EVALUATE_ANSWER":
+            nextNode = "evaluator";
+            break;
 
-User Analysis:
-${JSON.stringify(state.inputAnalysis)}
+        case "ANSWER_QUESTION":
+            nextNode = "interviewer";
+            break;
 
-Graph Analysis:
-${JSON.stringify(state.graphAnalysis)}
+        case "ACKNOWLEDGE":
+            nextNode = "interviewer";
+            break;
 
--------------------------
+        case "REPEAT_QUESTION":
+            nextNode = "interviewer";
+            break;
 
-Your job:
-Decide the BEST next question to ask.
+        case "END_INTERVIEW":
+            nextNode = "interviewer";
+            break;
 
-Return ONLY the question.
-`);
+        default:
+            nextNode = "interviewer";
+    }
 
-  return {
-    messages: [
-      {
-        role: "assistant",
-        content: res.content,
-      },
-    ],
-  };
+    console.log("Next Node :", nextNode);
+    console.log("===============================\n");
+
+    return {
+        nextNode
+    };
+
 }
