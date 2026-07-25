@@ -79,8 +79,6 @@ export default function ChatPanel() {
 
       },
 
-      () => { }
-
     );
 
     async function startInterview() {
