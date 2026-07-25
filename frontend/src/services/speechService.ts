@@ -16,7 +16,7 @@ class SpeechService {
   private recording = false;
 
   init(
-onRecording: (blob: Blob) => void, onStatus?: (msg: string) => void, p0?: (status: string) => void  ) {
+onRecording: (blob: Blob) => void, onStatus?: (msg: string) => void ) {
     this.onRecordingCb = onRecording;
     this.onStatusCb = onStatus ?? null;
   }
