@@ -1,0 +1,49 @@
+import { getSession } from "./auth.service";
+
+export async function startInterview(
+
+    problemId: string,
+
+    difficulty: string
+
+) {
+
+    const session = await getSession();
+
+    const res = await fetch(
+
+        "http://localhost:5000/api/interview/start",
+
+        {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json",
+
+                Authorization:
+
+                    `Bearer ${session?.access_token}`
+
+            },
+
+            body: JSON.stringify({
+
+                problemId,
+
+                difficulty
+
+            })
+
+        }
+
+    );
+
+    if (!res.ok)
+
+        throw new Error("Unable to start interview");
+
+    return await res.json();
+
+}

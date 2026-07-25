@@ -2,30 +2,40 @@ import { z } from "zod";
 
 export const ConversationSchema = z.object({
 
-    decision: z.enum([
+    acknowledge: z.boolean(),
 
-        "ANSWER_CANDIDATE",
+    acknowledgement: z.string(),
 
-        "PROBE_DEEPER",
+    tone: z.enum([
 
-        "MOVE_FORWARD",
+        "NEUTRAL",
 
-        "REPEAT_QUESTION",
+        "ENCOURAGING",
 
-        "WRAP_UP"
+        "CHALLENGING",
+
+        "CURIOUS"
 
     ]),
 
-    nextStage: z.string(),
+    hintLevel: z.enum([
 
-    objective: z.string(),
+        "NONE",
 
-    nextQuestion: z.string(),
+        "MINIMAL",
 
-    targetTopic: z.string(),
+        "MEDIUM"
 
-    reasoning: z.string(),
+    ]),
 
-    confidence: z.number().min(0).max(1)
+    responseStyle: z.enum([
+
+        "DIRECT",
+
+        "SOCRATIC",
+
+        "CONVERSATIONAL"
+
+    ])
 
 });

@@ -29,25 +29,44 @@ export const State = Annotation.Root({
   // ===========================
 
   interview: Annotation({
+
     reducer: (a, b) => ({
+
       ...(a || {}),
-      ...(b || {}),
+
+      ...(b || {})
+
     }),
+
     default: () => ({
+
+      interviewId: null,
+
       started: false,
 
       stage: "Requirements",
-
-      currentQuestion: "",
-
-      currentObjective: "",
 
       progress: 0,
 
       difficulty: "SDE1",
 
       completed: false,
-    }),
+
+      reportGenerated: false,
+
+      currentQuestion: "",
+
+      objective: {
+        name: "Requirements",
+        description: "",
+        completionCriteria: [],
+        completedCriteria: []
+      },
+
+      topicTracker: {}
+
+    })
+
   }),
 
   // ===========================
@@ -55,11 +74,17 @@ export const State = Annotation.Root({
   // ===========================
 
   candidate: Annotation({
+
     reducer: (a, b) => ({
+
       ...(a || {}),
+
       ...(b || {}),
+
     }),
+
     default: () => ({
+
       latestMessage: "",
 
       intent: null,
@@ -72,16 +97,24 @@ export const State = Annotation.Root({
 
       coveredConcepts: [],
 
-      missingConcepts: [],
-
-      incorrectConcepts: [],
-
       architectureChoices: [],
 
       assumptions: [],
 
-      level: "Unknown",
+      mentionedTopics: [],
+
+      recommendedProbe: null,
+
+      criticalMissingConcepts: [],
+
+      stageCoverage: 0,
+
+      readyToMove: false,
+
+      level: "Unknown"
+
     }),
+
   }),
 
   // ===========================
@@ -89,17 +122,43 @@ export const State = Annotation.Root({
   // ===========================
 
   conversation: Annotation({
+
     reducer: (a, b) => ({
+
       ...(a || {}),
-      ...(b || {}),
+
+      ...(b || {})
+
     }),
+
     default: () => ({
+
       decision: null,
 
-      objective: "",
+      targetTopic: "",
+
+      targetConcept: "",
+
+      objective: null,
+
+      reason: "",
+
+      tone: "NEUTRAL",
+
+      acknowledge: false,
+
+      acknowledgement: "",
+
+      responseStyle: "DIRECT",
+
+      hintLevel: "NONE",
 
       shouldRespond: true,
-    }),
+
+      candidateQuestion: "",
+
+    })
+
   }),
 
   // ===========================
@@ -136,6 +195,34 @@ export const State = Annotation.Root({
       edges: [],
       analysis: null,
     }),
+  }),
+
+  graphConsistency: Annotation({
+
+    reducer: (_, b) => b,
+
+    default: () => ({
+
+      matched: [],
+
+      drawnOnly: [],
+
+      mentioned: [],
+
+      graphNodeCount: 0,
+
+      graphEdgeCount: 0
+
+    })
+
+  }),
+
+  graphAnalysis: Annotation({
+
+    reducer: (_, b) => b,
+
+    default: () => null
+
   }),
 
 });

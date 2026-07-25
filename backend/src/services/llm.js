@@ -17,6 +17,7 @@ if (!OPENROUTER_API_KEY) {
 export const llm = new ChatOpenAI({
   model: OPENROUTER_MODEL,
   temperature: 0.3,
+  maxTokens: 4096,
   apiKey: OPENROUTER_API_KEY,
   configuration: {
     baseURL: OPENROUTER_BASE_URL,

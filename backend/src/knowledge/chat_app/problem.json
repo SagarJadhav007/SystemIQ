@@ -3,6 +3,8 @@
 
   "title": "Design WhatsApp",
 
+  "problemDifficulty": "Medium",
+
   "description": "Design a globally distributed real-time messaging platform like WhatsApp supporting one-to-one chat, group chat and media sharing.",
 
   "functionalRequirements": [

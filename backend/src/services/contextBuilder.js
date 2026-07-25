@@ -1,3 +1,7 @@
+// ======================================================
+// Intent
+// ======================================================
+
 export function buildIntentContext(state) {
 
     return {
@@ -6,7 +10,7 @@ export function buildIntentContext(state) {
             state.candidate.latestMessage,
 
         interviewStage:
-            state.interview.stage,
+            state.interview.stage
 
     };
 
@@ -29,11 +33,14 @@ export function buildEvaluatorContext(state) {
         architectureKnowledge:
             state.knowledge.architecture,
 
+        currentStage:
+            state.interview.stage,
+
         currentQuestion:
             state.interview.currentQuestion,
 
-        currentStage:
-            state.interview.stage,
+        currentObjective:
+            state.interview.objective,
 
         candidateAnswer:
             state.candidate.latestMessage,
@@ -41,132 +48,47 @@ export function buildEvaluatorContext(state) {
         interviewSummary:
             state.memory.summary,
 
-        graph:
-            state.graph
+        graphAnalysis:
+            state.graphAnalysis
 
     };
 
 }
 
 // ======================================================
-// Conversation Manager
+// Conversation
 // ======================================================
 
-export function buildConversationContext(state) {
+export function buildConversationContext(
+    state,
+    decision
+) {
 
     return {
 
-        // --------------------------
-        // Problem Knowledge
-        // --------------------------
-
-        problem:
-            state.knowledge.problem,
-
-        interviewGuide:
-            state.knowledge.interview,
-
-        // --------------------------
-        // Interview Progress
-        // --------------------------
+        decision,
 
         interview: {
 
             stage:
                 state.interview.stage,
 
-            currentQuestion:
+            question:
                 state.interview.currentQuestion,
 
-            currentObjective:
-                state.interview.currentObjective,
+            objective:
+                state.interview.objective,
 
             progress:
-                state.interview.progress,
-
-            difficulty:
-                state.interview.difficulty,
-
-            completed:
-                state.interview.completed
+                state.interview.progress
 
         },
-
-        // --------------------------
-        // Intent
-        // --------------------------
-
-        intent:
-            state.candidate.intent,
-
-        // --------------------------
-        // Evaluation
-        // --------------------------
 
         evaluation:
             state.candidate.evaluation,
 
-        // --------------------------
-        // Candidate Profile
-        // --------------------------
-
-        candidate: {
-
-            latestMessage:
-                state.candidate.latestMessage,
-
-            strengths:
-                state.candidate.strengths,
-
-            weaknesses:
-                state.candidate.weaknesses,
-
-            coveredConcepts:
-                state.candidate.coveredConcepts,
-
-            missingConcepts:
-                state.candidate.missingConcepts,
-
-            incorrectConcepts:
-                state.candidate.incorrectConcepts,
-
-            architectureChoices:
-                state.candidate.architectureChoices,
-
-            assumptions:
-                state.candidate.assumptions,
-
-            level:
-                state.candidate.level
-
-        },
-
-        // --------------------------
-        // Memory
-        // --------------------------
-
-        memory: {
-
-            summary:
-                state.memory.summary,
-
-            previousQuestions:
-                state.memory.previousQuestions,
-
-            importantFacts:
-                state.memory.importantFacts,
-
-            interviewNotes:
-                state.memory.interviewNotes
-
-        },
-
-        // --------------------------
-        // Whiteboard
-        // --------------------------
-
-        graph:
-            state.graph
+        summary:
+            state.memory.summary
 
     };
 
@@ -175,34 +97,15 @@ export function buildConversationContext(state) {
 // ======================================================
 // Interviewer
 // ======================================================
-
 export function buildInterviewerContext(state) {
 
     return {
 
-        problem:
-            state.knowledge.problem,
+        ...state,
 
-        architecture:
-            state.knowledge.architecture,
+        graphAnalysis:
 
-        interviewGuide:
-            state.knowledge.interview,
-
-        interview:
-            state.interview,
-
-        conversation:
-            state.conversation,
-
-        candidate:
-            state.candidate,
-
-        memory:
-            state.memory,
-
-        graph:
-            state.graph
+            state.graphAnalysis
 
     };
 

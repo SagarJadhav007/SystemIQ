@@ -1,27 +1,21 @@
 import {
   runAgent,
-  runGraphCheck,
   agent,
 } from "../controllers/interview.controller.js";
+import { SessionService } from "../services/interview/session.service.js";
+import { GraphService } from "../services/graph/graph.service.js";
 
-const sessions = {};
 
-export function interviewSocket(socket) {
+export async function interviewSocket(socket) {
+  let interviewId = null;
 
   console.log("User connected:", socket.id);
-
-  sessions[socket.id] = {
-    graph: {
-      nodes: [],
-      edges: [],
-    },
-  };
 
   // ============================================================
   // FRONTEND READY
   // ============================================================
 
-  socket.on("ready", async () => {
+  setImmediate(async () => {
     await initializeInterview();
   });
 
@@ -31,38 +25,51 @@ export function interviewSocket(socket) {
 
   async function initializeInterview() {
 
+    console.log("INITIALIZE INTERVIEW");
+
     try {
 
       const state = await agent.getState({
 
         configurable: {
 
-          thread_id: socket.id,
+          thread_id: interviewId
 
-        },
+        }
 
       });
+
+      console.log("STATE:", state?.values?.interview);
 
       const interview = state?.values?.interview;
 
       if (!interview?.started) {
 
-        console.log("[socket] starting interview");
+        console.log("RUNNING INITIAL GREETING");
 
-        await runAgent(socket, {
+        await runAgent(
 
-          graph: sessions[socket.id].graph,
+          socket,
 
-        });
+          {
+
+            interview: {
+
+              interviewId
+
+            }
+
+          }
+
+        );
 
         return;
 
       }
 
-      console.log("[socket] restoring interview");
+      console.log("RESTORING INTERVIEW");
 
-      const lastMessage =
-        state.values.messages?.at(-1);
+      const lastMessage = state.values.messages?.at(-1);
 
       if (lastMessage?.content) {
 
@@ -80,13 +87,23 @@ export function interviewSocket(socket) {
 
     catch (err) {
 
-      console.log("[socket] new session");
+      console.log("NEW SESSION");
 
-      await runAgent(socket, {
+      await runAgent(
 
-        graph: sessions[socket.id].graph,
+        socket,
 
-      });
+        {
+
+          interview: {
+
+            interviewId
+
+          }
+
+        }
+
+      );
 
     }
 
@@ -100,19 +117,39 @@ export function interviewSocket(socket) {
 
     if (!text?.trim()) return;
 
-    console.log("\n============= USER =============\n");
+    await runAgent(
 
-    console.log(text);
+      socket,
 
-    console.log("\n===============================\n");
+      {
 
-    await runAgent(socket, {
+        lastUserText: text
 
-      lastUserText: text,
+      }
 
-      graph: sessions[socket.id].graph,
+    );
 
-    });
+    const session = await SessionService.get(
+
+      interviewId
+
+    );
+
+    if (session?.report) {
+
+      socket.emit(
+
+        "interview_completed",
+
+        {
+
+          interviewId
+
+        }
+
+      );
+
+    }
 
   });
 
@@ -122,23 +159,45 @@ export function interviewSocket(socket) {
 
   socket.on("graph_update", async (graph) => {
 
-    sessions[socket.id].graph = graph;
+    await GraphService.update(
+
+      interviewId,
+
+      graph
+
+    );
 
     console.log(
 
-      "[socket] graph updated:",
+      "[GRAPH UPDATED]",
 
-      graph?.nodes?.length ?? 0,
+      graph.nodes.length,
 
       "nodes"
 
     );
 
-    await runGraphCheck(socket, {
+    GraphService.scheduleAnalysis(
 
-      graph,
+      interviewId,
 
-    });
+      async () => {
+
+        console.log(
+
+          "[GRAPH ANALYSIS STARTED]"
+
+        );
+
+        await runAgent(socket, {
+
+          graphOnly: true
+
+        });
+
+      }
+
+    );
 
   });
 
@@ -149,8 +208,6 @@ export function interviewSocket(socket) {
   socket.on("disconnect", () => {
 
     console.log("User disconnected:", socket.id);
-
-    delete sessions[socket.id];
 
   });
 

@@ -1,44 +1,57 @@
+import { log } from "../utils/logger.js";
+
 export async function orchestratorNode(state) {
 
-    const action = state.candidate.intent?.nextAction;
+    const intent = state.candidate.intent?.intent;
 
-    console.log("\n========== ORCHESTRATOR ==========");
-    console.log("Intent :", state.candidate.intent?.intent);
-    console.log("Action :", action);
+    log("ORCHESTRATOR", {
+        intent
+    });
 
-    let nextNode = "interviewer";
+    let nextNode;
 
-    switch (action) {
+    switch (intent) {
 
-        case "EVALUATE_ANSWER":
+        // =====================================================
+        // Candidate answered interviewer
+        // =====================================================
+
+        case "ANSWER":
+
             nextNode = "evaluator";
             break;
 
-        case "ANSWER_QUESTION":
-            nextNode = "interviewer";
-            break;
+        // =====================================================
+        // Candidate asked interviewer something
+        // =====================================================
 
-        case "ACKNOWLEDGE":
-            nextNode = "interviewer";
-            break;
+        case "CLARIFICATION":
 
-        case "REPEAT_QUESTION":
-            nextNode = "interviewer";
-            break;
+        case "QUESTION":
 
-        case "END_INTERVIEW":
-            nextNode = "interviewer";
+        case "ACKNOWLEDGEMENT":
+
+        case "SMALL_TALK":
+
+        case "WRAP_UP":
+
+        case "UNKNOWN":
+
+            nextNode = "conversationManager";
             break;
 
         default:
-            nextNode = "interviewer";
+
+            nextNode = "conversationManager";
+
     }
 
-    console.log("Next Node :", nextNode);
-    console.log("===============================\n");
+    log("NEXT NODE", nextNode);
 
     return {
+
         nextNode
+
     };
 
 }

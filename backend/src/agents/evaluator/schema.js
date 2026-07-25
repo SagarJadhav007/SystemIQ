@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+export const MentionedTopicSchema = z.object({
+
+    topic: z.string(),
+
+    needsProbe: z.boolean(),
+
+    explanationQuality: z.enum([
+        "POOR",
+        "FAIR",
+        "GOOD",
+        "EXCELLENT"
+    ])
+
+});
+
 export const EvaluationSchema = z.object({
 
     answeredCurrentQuestion: z.boolean(),
@@ -17,13 +32,15 @@ export const EvaluationSchema = z.object({
 
     weaknesses: z.array(z.string()),
 
-    coveredConcepts: z.array(z.string()),
-
-    missingConcepts: z.array(z.string()),
-
-    incorrectConcepts: z.array(z.string()),
-
     architectureChoices: z.array(z.string()),
+
+    assumptions: z.array(z.string()),
+
+    mentionedTopics: z.array(MentionedTopicSchema),
+
+    completedCriteria: z.array(z.string()),
+
+    criticalMissingConcepts: z.array(z.string()),
 
     reasoning: z.string()
 

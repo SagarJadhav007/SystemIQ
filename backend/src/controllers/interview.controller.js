@@ -1,122 +1,153 @@
 import { buildAgent } from "../../agent.js";
 import { checkpointer } from "../services/memory.js";
-import { loadKnowledge } from "../services/knowledgeLoader.js";
+import { log, separator } from "../utils/logger.js";
+import { InterviewService } from "../services/interview/interview.service.js";
 
 export const agent = buildAgent(checkpointer);
 
-const knowledge = loadKnowledge("chat_app");
-
-/**
- * Runs one interview turn.
- */
 export async function runAgent(socket, update) {
 
-  try {
+    try {
 
-    const result = await agent.invoke(
+        const interviewId = socket.data.interviewId;
 
-      {
+        // ================================================
+        // Graph-only analysis
+        // ================================================
 
-        knowledge,
+        if (update.graphOnly) {
 
-        candidate: {
+            await InterviewService.analyzeGraph(
 
-          latestMessage: update.lastUserText ?? null,
+                interviewId
 
-        },
+            );
 
-        graph: update.graph ?? null,
+            return;
 
-      },
+        }
 
-      {
+        // =====================================================
+        // Logging
+        // =====================================================
 
-        configurable: {
+        if (!update.lastUserText) {
 
-          thread_id: socket.id,
+            separator("NEW INTERVIEW");
 
-        },
+        } else {
 
-      }
+            log("USER", update.lastUserText);
 
-    );
+        }
 
-    console.log("\n========== FINAL STATE ==========\n");
+        // =====================================================
+        // Initialize Interview
+        // =====================================================
 
-    console.dir(result, {
+        let response;
 
-      depth: null,
+        if (!update.lastUserText) {
 
-      colors: true,
+            const result =
+                await InterviewService.initialize(
 
-    });
+                    interviewId,
 
-    console.log("\n=================================\n");
+                    update.interview
 
-    const lastMessage = result.messages?.at(-1);
+                );
 
-    console.log("Last message:", lastMessage);
+            response = result.messages?.at(-1)?.content;
 
-    if (!lastMessage?.content) {
+        }
 
-      console.warn("No AI response");
+        // =====================================================
+        // User Message
+        // =====================================================
 
-      return;
+        else {
+
+            response = await InterviewService.sendMessage(
+
+                interviewId,
+
+                update.lastUserText
+
+            );
+
+        }
+
+        // =====================================================
+        // Validate
+        // =====================================================
+
+        if (!response) {
+
+            log(
+
+                "ERROR",
+
+                "No AI response generated."
+
+            );
+
+            socket.emit(
+
+                "ai_error",
+
+                "No response generated."
+
+            );
+
+            return;
+
+        }
+
+        // =====================================================
+        // Logs
+        // =====================================================
+
+        log(
+
+            "AI",
+
+            response
+
+        );
+
+        // =====================================================
+        // Send Response
+        // =====================================================
+
+        socket.emit(
+
+            "ai_question",
+
+            response
+
+        );
 
     }
 
-    console.log("Sending:", lastMessage.content);
+    catch (err) {
 
-    socket.emit(
+        log(
 
-      "ai_question",
+            "AGENT ERROR",
 
-      lastMessage.content
+            err
 
-    );
+        );
 
-  }
+        socket.emit(
 
-  catch (err) {
+            "ai_error",
 
-    console.error(err);
+            err.message
 
-    socket.emit(
+        );
 
-      "ai_error",
+    }
 
-      err.message
-
-    );
-
-  }
-
-}
-
-/**
- * Called whenever the whiteboard changes.
- *
- * For now we simply persist the graph inside the LangGraph state.
- * Later this function will invoke the Graph Analyzer and Conversation Manager
- * to generate proactive interview questions.
- */
-export async function runGraphCheck(socket, { graph }) {
-  try {
-    await agent.invoke(
-      {
-        graph,
-      },
-      {
-        configurable: {
-          thread_id: socket.id,
-        },
-      }
-    );
-
-    console.log(
-      `[Graph] Updated (${graph?.nodes?.length ?? 0} nodes)`
-    );
-  } catch (err) {
-    console.error("[Graph]", err);
-  }
 }

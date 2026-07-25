@@ -2,26 +2,35 @@ import { llm } from "../../services/llm.js";
 import { conversationPrompt } from "./prompt.js";
 import { ConversationSchema } from "./schema.js";
 
-const structured = llm.withStructuredOutput(
-    ConversationSchema
-);
+const structured =
+    llm.withStructuredOutput(
+        ConversationSchema
+    );
 
 export async function decideConversation(context) {
 
-    const result = await structured.invoke([
+    return await structured.invoke([
 
         {
+
             role: "system",
-            content: conversationPrompt,
+
+            content: conversationPrompt
+
         },
 
         {
+
             role: "user",
-            content: JSON.stringify(context, null, 2),
-        },
+
+            content: JSON.stringify(
+                context,
+                null,
+                2
+            )
+
+        }
 
     ]);
-
-    return result;
 
 }

@@ -1,50 +1,47 @@
 import { decideConversation } from "../agents/conversation/agent.js";
 import { buildConversationContext } from "../services/contextBuilder.js";
 import { SessionManager } from "../services/sessionManager.js";
+import { decideNextAction } from "../services/decisionEngine.js";
+import { log } from "../utils/logger.js";
 
 export async function conversationNode(state) {
 
-    console.log("\n========== CONVERSATION ==========");
+    // --------------------------------------------
+    // JS decides interview flow
+    // --------------------------------------------
 
-    try {
+    const decision = decideNextAction(state);
 
-        const context = buildConversationContext(state);
+    log("DECISION", decision);
 
-        console.log("Building conversation decision...");
+    // --------------------------------------------
+    // LLM decides conversation style
+    // --------------------------------------------
 
-        const decision = await decideConversation(context);
+    const context = buildConversationContext(
 
-        console.log(decision);
+        state,
 
-        console.log("==================================\n");
+        decision
 
-        return SessionManager.applyConversationDecision(
-            state,
-            decision
-        );
+    );
 
-    } catch (err) {
+    const style = await decideConversation(context);
 
-        console.error("[Conversation]", err);
+    log("CONVERSATION", style);
 
-        return SessionManager.applyConversationDecision(state, {
+    return SessionManager.applyConversationDecision(
 
-            decision: "FOLLOW_UP",
+        state,
 
-            targetTopic: "",
+        {
 
-            objective: state.interview.currentObjective,
+            ...decision,
 
-            nextQuestion: state.interview.currentQuestion,
+            ...style
 
-            nextStage: state.interview.stage,
+        }
 
-            reasoning: err.message,
-
-            confidence: 0
-
-        });
-
-    }
+    );
 
 }
