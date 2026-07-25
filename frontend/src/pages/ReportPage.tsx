@@ -9,6 +9,7 @@ import StrengthWeakness from "../components/report/StrengthWeakness";
 import StageBreakdown from "../components/report/StageBreakdown";
 import Recommendations from "../components/report/Recommendations";
 import ReportSummary from "../components/report/ReportSummary";
+import { API_URL } from "../config";
 
 export default function ReportPage() {
 

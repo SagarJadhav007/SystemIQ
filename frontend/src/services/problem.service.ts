@@ -1,8 +1,10 @@
+import { API_URL } from "../config";
+
 export async function getProblems() {
 
     const res = await fetch(
 
-        "${API_URL}/api/problems"
+        `${API_URL}/api/problems`
 
     );
 

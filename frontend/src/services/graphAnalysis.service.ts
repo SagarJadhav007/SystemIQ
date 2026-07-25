@@ -1,4 +1,5 @@
 import { getSession } from "./auth.service";
+import { API_URL } from "../config";
 
 export async function getGraphAnalysis(
     interviewId: string
