@@ -2,7 +2,7 @@ export async function getProblems() {
 
     const res = await fetch(
 
-        "http://localhost:5000/api/problems"
+        "${API_URL}/api/problems"
 
     );
 
@@ -18,7 +18,7 @@ export async function getProblem(
 
     const res = await fetch(
 
-        `http://localhost:5000/api/problems/${id}`
+        `${API_URL}/api/problems/${id}`
 
     );
 

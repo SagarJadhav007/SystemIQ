@@ -12,7 +12,7 @@ export async function startInterview(
 
     const res = await fetch(
 
-        "http://localhost:5000/api/interview/start",
+        "${API_URL}/api/interview/start",
 
         {
 

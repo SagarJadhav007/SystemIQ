@@ -8,7 +8,7 @@ export async function getGraphAnalysis(
 
     const res = await fetch(
 
-        `http://localhost:5000/api/interview/state/${interviewId}`,
+        `${API_URL}/api/interview/state/${interviewId}`,
 
         {
 

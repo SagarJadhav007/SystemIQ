@@ -1,7 +1,7 @@
 import axios from "axios";
 import { supabase } from "../lib/supabase";
 
-const API = "http://localhost:5000/api";
+const API = "${API_URL}/api";
 
 export async function endInterview(
 

@@ -6,7 +6,7 @@ export async function getHistory() {
 
     const res = await fetch(
 
-        "http://localhost:5000/api/history",
+        "${API_URL}/api/history",
 
         {
 

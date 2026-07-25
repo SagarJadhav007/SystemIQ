@@ -7,7 +7,7 @@ export async function initializeInterview(interviewId: string) {
 
     const { data } = await axios.post(
 
-        "http://localhost:5000/api/interview/initialize",
+        "${API_URL}/api/interview/initialize",
 
         {
 

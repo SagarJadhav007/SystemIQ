@@ -26,7 +26,7 @@ export default function ReportPage() {
 
                 const res = await fetch(
 
-                    `http://localhost:5000/api/report/${interviewId}`
+                    `${API_URL}/api/report/${interviewId}`
 
                 );
 
