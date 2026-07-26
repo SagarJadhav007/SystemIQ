@@ -1,7 +1,8 @@
 import axios from "axios";
 import { supabase } from "../lib/supabase";
+import {API_URL} from "../config";
 
-const API = "${API_URL}/api";
+const API = `${API_URL}/api`;
 
 export async function getInterviewState(
 

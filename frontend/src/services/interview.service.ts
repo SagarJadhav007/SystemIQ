@@ -1,4 +1,5 @@
 import { getSession } from "./auth.service";
+import {API_URL} from "../config";
 
 export async function startInterview(
 
@@ -12,7 +13,7 @@ export async function startInterview(
 
     const res = await fetch(
 
-        "${API_URL}/api/interview/start",
+        `${API_URL}/api/interview/start`,
 
         {
 

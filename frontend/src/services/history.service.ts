@@ -1,4 +1,5 @@
 import { getSession } from "./auth.service";
+import { API_URL } from "../config";
 
 export async function getHistory() {
 
@@ -6,7 +7,7 @@ export async function getHistory() {
 
     const res = await fetch(
 
-        "${API_URL}/api/history",
+        `${API_URL}/api/history`,
 
         {
 

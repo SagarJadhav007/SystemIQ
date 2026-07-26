@@ -1,4 +1,5 @@
-const API = "${API_URL}/api/voice";
+import {API_URL} from "../config";
+const API = `${API_URL}/api/voice`;
 
 export async function transcribeAudio(blob: Blob): Promise<string> {
     const form = new FormData();

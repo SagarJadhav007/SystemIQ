@@ -1,7 +1,6 @@
 import axios from "axios";
 import { supabase } from "../lib/supabase";
-
-const API = "${API_URL}/api";
+import { API_URL } from "../config";
 
 export async function saveGraph(
     interviewId: string,
@@ -14,7 +13,7 @@ export async function saveGraph(
 
     await axios.post(
 
-        `${API}/interview/graph`,
+        `${API_URL}/api/interview/graph`,
 
         {
             interviewId,
