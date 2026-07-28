@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { signIn, getCurrentUser } from "../services/auth.service";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Sparkles } from "lucide-react";
 import AuthLayout from "../components/auth/AuthLayout";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -73,17 +74,22 @@ export default function Login() {
     return (
 
         <AuthLayout>
-            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111827] p-8 shadow-2xl">
-
-                <p className="mb-2 text-sm font-medium text-amber-400">
+            <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="card w-full max-w-md overflow-hidden p-8"
+            >
+                <span className="eyebrow">
+                    <Sparkles size={13} className="text-amber-400" />
                     Welcome Back
-                </p>
+                </span>
 
-                <h2 className="mb-2 text-3xl font-bold text-white">
+                <h2 className="mb-2 mt-4 font-display text-3xl font-bold text-white">
                     Sign in
                 </h2>
 
-                <p className="mb-8 text-gray-400">
+                <p className="mb-8 text-white/60">
                     Continue your SystemIQ interview journey.
                 </p>
 
@@ -107,7 +113,7 @@ export default function Login() {
                     />
 
                     {error && (
-                        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+                        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-300">
                             {error}
                         </div>
                     )}
@@ -120,11 +126,11 @@ export default function Login() {
                         Sign In
                     </Button>
 
-                    <p className="text-center text-sm text-gray-400">
+                    <p className="text-center text-sm text-white/50">
                         Don't have an account?{" "}
                         <Link
                             to="/signup"
-                            className="font-medium text-amber-400 hover:text-amber-300"
+                            className="font-medium text-amber-400 transition hover:text-amber-300"
                         >
                             Create Account
                         </Link>
@@ -132,7 +138,7 @@ export default function Login() {
 
                 </div>
 
-            </div>
+            </motion.div>
         </AuthLayout>
 
     );

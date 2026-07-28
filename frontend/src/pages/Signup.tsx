@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, UserPlus } from "lucide-react";
+import { motion } from "framer-motion";
+import { Mail, Lock, UserPlus, Sparkles } from "lucide-react";
 
 import { getCurrentUser, signUp } from "../services/auth.service";
 
@@ -46,21 +47,26 @@ export default function Signup() {
 
     return (
         <AuthLayout>
-            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#111827] p-8 shadow-2xl">
-
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
-                    <UserPlus className="text-amber-400" size={28} />
+            <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+                className="card w-full max-w-md overflow-hidden p-8"
+            >
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10">
+                    <UserPlus className="text-amber-400" size={26} />
                 </div>
 
-                <p className="mb-2 text-sm font-medium uppercase tracking-wider text-amber-400">
+                <span className="eyebrow">
+                    <Sparkles size={13} className="text-amber-400" />
                     Get Started
-                </p>
+                </span>
 
-                <h2 className="mb-2 text-3xl font-bold text-white">
+                <h2 className="mb-2 mt-4 font-display text-3xl font-bold text-white">
                     Create your account
                 </h2>
 
-                <p className="mb-8 text-gray-400">
+                <p className="mb-8 text-white/60">
                     Join SystemIQ and start mastering system design interviews.
                 </p>
 
@@ -84,7 +90,7 @@ export default function Signup() {
                     />
 
                     {error && (
-                        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+                        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-sm text-rose-300">
                             {error}
                         </div>
                     )}
@@ -97,7 +103,7 @@ export default function Signup() {
                         Create Account
                     </Button>
 
-                    <p className="text-center text-sm text-gray-400">
+                    <p className="text-center text-sm text-white/50">
                         Already have an account?{" "}
                         <Link
                             to="/"
@@ -108,7 +114,7 @@ export default function Signup() {
                     </p>
 
                 </div>
-            </div>
+            </motion.div>
         </AuthLayout>
     );
 }
