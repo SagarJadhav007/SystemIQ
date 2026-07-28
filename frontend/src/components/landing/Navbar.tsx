@@ -78,7 +78,7 @@ export default function Navbar() {
                 {l}
               </a>
             ))}
-            <a href="#start" className="btn-primary mt-2 w-full">
+            <a href="login" className="btn-primary mt-2 w-full">
               Start Interview <ArrowRight size={15} />
             </a>
           </div>
