@@ -35,7 +35,7 @@ export default function PopularProblems() {
 
     return (
 
-        <div className="mt-6 rounded-2xl border border-dashed border-white/20 bg-black p-6">
+        <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-base p-6">
 
             {/* Header */}
 

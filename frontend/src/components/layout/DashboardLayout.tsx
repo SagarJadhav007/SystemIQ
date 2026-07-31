@@ -12,7 +12,7 @@ export default function DashboardLayout({
 
     return (
 
-        <div className="bg-black">
+        <div className="bg-base">
 
             <Sidebar />
 

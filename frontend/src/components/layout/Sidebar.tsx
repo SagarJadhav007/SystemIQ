@@ -24,7 +24,7 @@ export default function Sidebar() {
                 flex-col
                 border-r
                 border-white/10
-                bg-black
+                bg-base
             "
         >
 

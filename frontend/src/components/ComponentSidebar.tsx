@@ -15,65 +15,403 @@ const onDragStart = (
 
 };
 
-const NODES = [
+interface NodeDef {
+
+    label: string;
+
+    icon: string;
+
+    type: string;
+
+}
+
+interface Category {
+
+    name: string;
+
+    nodes: NodeDef[];
+
+}
+
+const CATEGORIES: Category[] = [
 
     {
 
-        label: "API Gateway",
+        name: "Client",
 
-        icon: "🌐",
+        nodes: [
 
-        type: "api",
+            {
+
+                label: "Web Client",
+
+                icon: "💻",
+
+                type: "webclient",
+
+            },
+
+            {
+
+                label: "Mobile App",
+
+                icon: "📱",
+
+                type: "mobile",
+
+            },
+
+            {
+
+                label: "Third Party API",
+
+                icon: "🔗",
+
+                type: "thirdparty",
+
+            },
+
+        ],
 
     },
 
     {
 
-        label: "Database",
+        name: "Network",
 
-        icon: "🗄️",
+        nodes: [
 
-        type: "db",
+            {
+
+                label: "API Gateway",
+
+                icon: "🌐",
+
+                type: "api",
+
+            },
+
+            {
+
+                label: "Load Balancer",
+
+                icon: "⚖️",
+
+                type: "lb",
+
+            },
+
+            {
+
+                label: "CDN",
+
+                icon: "📦",
+
+                type: "cdn",
+
+            },
+
+            {
+
+                label: "Reverse Proxy",
+
+                icon: "🖥",
+
+                type: "proxy",
+
+            },
+
+            {
+
+                label: "Firewall",
+
+                icon: "🛡️",
+
+                type: "firewall",
+
+            },
+
+            {
+
+                label: "DNS",
+
+                icon: "ᯤ",
+
+                type: "dns",
+
+            },
+
+        ],
 
     },
 
     {
 
-        label: "Cache",
+        name: "Cache",
 
-        icon: "⚡",
+        nodes: [
 
-        type: "cache",
+            {
+
+                label: "Redis",
+
+                icon: "⚡",
+
+                type: "redis",
+
+            },
+
+            {
+
+                label: "MemCache",
+
+                icon: "⚡",
+
+                type: "memcache",
+
+            },
+
+            {
+
+                label: "Local Cache",
+
+                icon: "💾",
+
+                type: "localcache",
+
+            },
+
+        ],
 
     },
 
     {
 
-        label: "Load Balancer",
+        name: "Database",
 
-        icon: "⚖️",
+        nodes: [
 
-        type: "lb",
+            {
+
+                label: "SQL Database",
+
+                icon: "🗄️",
+
+                type: "sqldb",
+
+            },
+
+            {
+
+                label: "NoSQL Database",
+
+                icon: "{ }",
+
+                type: "nosqldb",
+
+            },
+
+            {
+
+                label: "Graph Database",
+
+                icon: "🖧",
+
+                type: "graphdb",
+
+            },
+
+            {
+
+                label: "Vector Database",
+
+                icon: "📑",
+
+                type: "vectordb",
+
+            },
+
+            {
+
+                label: "TimeSeries DB",
+
+                icon: "📈",
+
+                type: "timeseriesdb",
+
+            },
+
+        ],
 
     },
 
     {
 
-        label: "CDN",
+        name: "Compute",
 
-        icon: "📦",
+        nodes: [
 
-        type: "cdn",
+            {
+
+                label: "Service",
+
+                icon: "⚙️",
+
+                type: "service",
+
+            },
+
+            {
+
+                label: "CronJob",
+
+                icon: "🕑",
+
+                type: "cronjob",
+
+            },
+
+            {
+
+                label: "Worker",
+
+                icon: "💼",
+
+                type: "worker",
+
+            },
+
+        ],
 
     },
 
     {
 
-        label: "Message Queue",
+        name: "Storage",
 
-        icon: "📨",
+        nodes: [
 
-        type: "queue",
+            {
+
+                label: "BlobStorage",
+
+                icon: "☁️",
+
+                type: "blobstore",
+
+            },
+
+             {
+
+                label: "File Storage",
+
+                icon: "🗃️",
+
+                type: "filestore",
+
+            },
+
+             {
+
+                label: "Object Storage",
+
+                icon: "🪣",
+
+                type: "objectstore",
+
+            },
+
+        ],
+
+    },
+
+    {
+
+        name: "Messaging",
+
+        nodes: [
+
+            {
+
+                label: "Msg Queue",
+
+                icon: "📨",
+
+                type: "msgqueue",
+
+            },
+
+            {
+
+                label: "Event Bus",
+
+                icon: "⛟",
+
+                type: "eventbus",
+
+            },
+
+            {
+
+                label: "Publisher",
+
+                icon: "📢",
+
+                type: "publisher",
+
+            },
+
+            {
+
+                label: "Subscriber",
+
+                icon: "📩",
+
+                type: "subscriber",
+
+            },
+
+            {
+
+                label: "Kafka",
+
+                icon: "📨",
+
+                type: "kafka",
+
+            },
+
+        ],
+
+    },
+
+    {
+
+        name: "Search",
+
+        nodes: [
+
+            {
+
+                label: "Search Engine",
+
+                icon: "🛠",
+
+                type: "searchengine",
+
+            },
+
+            {
+
+                label: "Elastic Search",
+
+                icon: "🔎",
+
+                type: "elasticsearch",
+
+            },
+
+        ],
 
     },
 
@@ -83,27 +421,23 @@ export default function Sidebar() {
 
     const [search, setSearch] = useState("");
 
-    const filtered = useMemo(() => {
+    const filteredCategories = useMemo(() => {
 
-        return NODES.filter((node) =>
+        const query = search.toLowerCase();
 
-            node.label
+        return CATEGORIES.map((category) => ({
 
-                .toLowerCase()
+            ...category,
 
-                .includes(
+            nodes: category.nodes.filter((node) =>
 
-                    search.toLowerCase()
+                node.label.toLowerCase().includes(query)
 
-                )
+            ),
 
-        );
+        })).filter((category) => category.nodes.length > 0);
 
-    }, [
-
-        search
-
-    ]);
+    }, [search]);
 
     return (
 
@@ -176,81 +510,113 @@ export default function Sidebar() {
                     overflow-y-auto
                     overflow-x-hidden
                     p-2
-                    space-y-1
+                    space-y-4
                 "
             >
 
                 {
 
-                    filtered.map(
+                    filteredCategories.map((category) => (
 
-                        ({
+                        <div key={category.name}>
 
-                            label,
+                            <div
+                                className="
+                                    px-1
+                                    pb-1.5
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-wider
+                                    text-gray-500
+                                "
+                            >
 
-                            icon,
+                                {category.name}
 
-                            type,
+                            </div>
 
-                        }) => (
+                            <div className="space-y-1">
 
-                            <button
+                                {
 
-                                key={type}
+                                    category.nodes.map(
 
-                                draggable
+                                        ({
 
-                                onDragStart={(e) =>
+                                            label,
 
-                                    onDragStart(
+                                            icon,
 
-                                        e,
+                                            type,
 
-                                        type
+                                        }) => (
+
+                                            <button
+
+                                                key={type}
+
+                                                draggable
+
+                                                onDragStart={(e) =>
+
+                                                    onDragStart(
+
+                                                        e,
+
+                                                        type
+
+                                                    )
+
+                                                }
+
+                                                className="
+                                                    flex
+                                                    h-9
+                                                    w-full
+                                                    items-center
+                                                    gap-2
+                                                    rounded-lg
+                                                    border
+                                                    border-transparent
+                                                    bg-[#17191D]
+                                                    px-3
+                                                    text-left
+                                                    text-xs
+                                                    text-gray-300
+                                                    transition-all
+                                                    hover:border-[#F5B301]/40
+                                                    hover:bg-[#202228]
+                                                    active:scale-[0.98]
+                                                    cursor-grab
+                                                "
+                                            >
+
+                                                <span className="text-sm">
+
+                                                    {icon}
+
+                                                </span>
+
+                                                <span className="truncate">
+
+                                                    {label}
+
+                                                </span>
+
+                                            </button>
+
+                                        )
 
                                     )
 
                                 }
 
-                                className="
-                                    flex
-                                    h-9
-                                    w-full
-                                    items-center
-                                    gap-2
-                                    rounded-lg
-                                    border
-                                    border-transparent
-                                    bg-[#17191D]
-                                    px-3
-                                    text-left
-                                    text-xs
-                                    text-gray-300
-                                    transition-all
-                                    hover:border-[#F5B301]/40
-                                    hover:bg-[#202228]
-                                    active:scale-[0.98]
-                                    cursor-grab
-                                "
-                            >
+                            </div>
 
-                                <span className="text-sm">
+                        </div>
 
-                                    {icon}
-
-                                </span>
-
-                                <span className="truncate">
-
-                                    {label}
-
-                                </span>
-
-                            </button>
-
-                        )
-
-                    )
+                    ))
 
                 }
 

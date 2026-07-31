@@ -15,29 +15,106 @@ import "reactflow/dist/style.css";
 
 import Sidebar from "./ComponentSidebar";
 
-import ApiNode from "../nodes/ApiNode";
-import DbNode from "../nodes/DbNode";
-import CacheNode from "../nodes/CacheNode";
-import LBNode from "../nodes/LbNode";
-import QueueNode from "../nodes/QueueNode";
-import CDNNode from "../nodes/CDNNode";
+import {SqlDbNode, NoSqlDbNode, GraphDBNode, VectorDBNode, TimeSeriesDBNode }from "../nodes/DbNode";
+import {RedisCacheNode, MemCacheNode, LocalCacheNode} from "../nodes/CacheNode";
+import {QueueNode, EventBusNode, KafkaNode, PublisherNode, SubscriberNode} from "../nodes/MsgNode";
+import {CDNNode, DNSNode, FirewallNode, LBNode, ApiNode, ReverseProxyNode} from "../nodes/NetworkNodes";
+import {ServiceNode, WorkerNode, CronJobNode} from "../nodes/ServiceNode";
+import {BlobStorageNode, ObjStorageNode, FileStorageNode} from "../nodes/StorageNode";
+import {ClientNode, AppNode, ThirdPartyNode} from "../nodes/ClientNode";
+import {SearchEngineNode, ElasticSearchNode} from "../nodes/SearchNode"
+
+import LabeledEdge from "./LabeledEdge";
 
 import { saveGraph } from "../services/graph.service";
 import DiagramHeader from "./diagram/DiagramHeader";
 
 const nodeTypes = {
 
-    api: ApiNode,
+    // client
+    webclient: ClientNode,
 
-    db: DbNode,
+    mobile: AppNode,
 
-    cache: CacheNode,
+    thirdparty: ThirdPartyNode,
+
+    //network
+    apigateway: ApiNode,
+
+    dns: DNSNode,
+
+    firewall: FirewallNode,
+
+    proxy: ReverseProxyNode,
 
     lb: LBNode,
 
-    queue: QueueNode,
+    cdn: CDNNode,
 
-    cdn: CDNNode
+    // db
+    sqldb: SqlDbNode,
+
+    nosqldb : NoSqlDbNode,
+
+    graphdb: GraphDBNode,
+
+    vectordb: VectorDBNode,
+
+    timeseriesdb: TimeSeriesDBNode,
+
+    // cache
+    redis: RedisCacheNode,
+
+    memcache: MemCacheNode,
+
+    localcache: LocalCacheNode,
+
+    // msg
+    msgqueue: QueueNode,
+
+    eventbus: EventBusNode,
+
+    publisher: PublisherNode,
+
+    subscribe: SubscriberNode,
+
+    kafka: KafkaNode,
+
+    // search
+    searchengine: SearchEngineNode,
+
+    elasticsearch: ElasticSearchNode,
+
+    // compute
+    service: ServiceNode,
+
+    cronjob: CronJobNode,
+
+    worker: WorkerNode,
+
+    // storage
+    blobstore: BlobStorageNode,
+
+    filestore: FileStorageNode,
+
+    objectstore: ObjStorageNode,
+};
+
+const edgeTypes = {
+
+    labeled: LabeledEdge,
+
+};
+
+const defaultEdgeOptions = {
+
+    type: "labeled",
+
+};
+
+const DEFAULT_LABELS: Record<string, string> = {
+
+    service: "New Service",
 
 };
 
@@ -57,7 +134,25 @@ export default function Diagram() {
 
         (params: Connection) =>
 
-            setEdges((eds) => addEdge(params, eds)),
+            setEdges((eds) =>
+
+                addEdge(
+
+                    {
+
+                        ...params,
+
+                        type: "labeled",
+
+                        data: { label: "" },
+
+                    },
+
+                    eds
+
+                )
+
+            ),
 
         []
 
@@ -105,7 +200,7 @@ export default function Diagram() {
 
                     data: {
 
-                        label: type
+                        label: DEFAULT_LABELS[type] ?? type
 
                     }
 
@@ -267,6 +362,10 @@ export default function Diagram() {
                     edges={edges}
 
                     nodeTypes={nodeTypes}
+
+                    edgeTypes={edgeTypes}
+
+                    defaultEdgeOptions={defaultEdgeOptions}
 
                     onNodesChange={onNodesChange}
 

@@ -149,7 +149,7 @@ export default function DashboardStats({
 
                             key={stat.title}
 
-                            className="rounded-xl py-6 border border-white/20 bg-black p-4 transition-all duration-200 hover:border-[#F5B301]/30 hover:bg-[#F5B301]/5 hover:shadow-lg hover:shadow-white/10"
+                            className="rounded-xl py-6 border border-white/10 bg-[#0F1013] p-4 transition-all duration-200 hover:border-[#F5B301]/30 hover:bg-[#F5B301]/5 hover:shadow-lg hover:shadow-white/10"
 
                         >
 
