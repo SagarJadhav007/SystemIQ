@@ -6,6 +6,7 @@ import interviewRoutes from "./src/routes/interview.routes.js";
 import historyRoutes from "./src/routes/history.routes.js";
 import problemRoutes from "./src/routes/problem.routes.js";
 import voiceRoutes from "./src/routes/voice.routes.js";
+import { initializeAgent } from "./src/controllers/interview.controller.js";
 
 const app = express();
 app.use(cors({
@@ -24,6 +25,17 @@ app.use("/api/problems", problemRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+async function startServer() {
+    try {
+        await initializeAgent();
+
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Server startup failed:", error);
+        process.exit(1);
+    }
+}
+
+startServer();

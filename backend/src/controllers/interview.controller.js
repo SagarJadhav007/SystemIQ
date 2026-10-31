@@ -1,9 +1,16 @@
 import { buildAgent } from "../../agent.js";
-import { checkpointer } from "../services/memory.js";
 import { log, separator } from "../utils/logger.js";
 import { InterviewService } from "../services/interview/interview.service.js";
+import { initializeCheckpointer } from "../services/memory.js";
 
-export const agent = buildAgent(checkpointer);
+export let agent = null;
+
+export async function initializeAgent() {
+    const checkpointer = await initializeCheckpointer();
+    agent = buildAgent(checkpointer);
+
+    console.log("LangGraph agent initialized");
+}
 
 export async function runAgent(socket, update) {
 
